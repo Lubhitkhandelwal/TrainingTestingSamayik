@@ -382,15 +382,19 @@ def main():
         push_to_hub=False,
     )
 
-    trainer = Seq2SeqTrainer(
-        model=model,
-        args=training_args,
-        train_dataset=tokenized_train,
-        eval_dataset=tokenized_eval,
-        tokenizer=tokenizer,
-        data_collator=data_collator,
-        compute_metrics=lambda p: compute_metrics(p, tokenizer),
-    )
+    trainer_kwargs = {
+        "model": model,
+        "args": training_args,
+        "train_dataset": tokenized_train,
+        "eval_dataset": tokenized_eval,
+        "data_collator": data_collator,
+        "compute_metrics": lambda p: compute_metrics(p, tokenizer),
+    }
+    try:
+        trainer = Seq2SeqTrainer(**trainer_kwargs, processing_class=tokenizer)
+    except TypeError:
+        trainer = Seq2SeqTrainer(**trainer_kwargs, tokenizer=tokenizer)
+
 
     # --------------------------------------------------------
     # TRAIN
