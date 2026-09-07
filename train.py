@@ -139,8 +139,10 @@ def build_model(tokenizer):
     )
 
     target_id = tokenizer.convert_tokens_to_ids(TARGET_LANG)
-    model.config.forced_bos_token_id = target_id
-    model.generation_config.forced_bos_token_id = target_id
+    if hasattr(model, "generation_config") and model.generation_config is not None:
+        model.generation_config.forced_bos_token_id = target_id
+    if hasattr(model.config, "forced_bos_token_id"):
+        model.config.forced_bos_token_id = None
 
     model = prepare_model_for_kbit_training(model)
     model.gradient_checkpointing_enable()
@@ -157,6 +159,8 @@ def build_model(tokenizer):
     )
 
     model = get_peft_model(model, lora_config)
+    if hasattr(model, "generation_config") and model.generation_config is not None:
+        model.generation_config.forced_bos_token_id = target_id
 
     print("\nTrainable parameters:")
     model.print_trainable_parameters()
