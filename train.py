@@ -161,6 +161,8 @@ def build_model(tokenizer):
     model = get_peft_model(model, lora_config)
     if hasattr(model, "generation_config") and model.generation_config is not None:
         model.generation_config.forced_bos_token_id = target_id
+    if hasattr(model.config, "forced_bos_token_id"):
+        model.config.forced_bos_token_id = None
 
     print("\nTrainable parameters:")
     model.print_trainable_parameters()
