@@ -91,10 +91,17 @@ def seed_everything(seed):
 
 def preprocess_function(examples, tokenizer):
     # Sāmayik format:
-    # examples["translation"]["sa"] -> Sanskrit
-    # examples["translation"]["en"] -> English
-    source_texts = examples["translation"]["sa"]
-    target_texts = examples["translation"]["en"]
+    # When batched=True, examples["translation"] is a list of dicts: [{'en': '...', 'sa': '...'}, ...]
+    # When batched=False, it is a single dict: {'en': '...', 'sa': '...'}
+    translations = examples["translation"]
+    if isinstance(translations, list):
+        source_texts = [item["sa"] for item in translations]
+        target_texts = [item["en"] for item in translations]
+    elif isinstance(translations, dict):
+        source_texts = translations["sa"]
+        target_texts = translations["en"]
+    else:
+        raise ValueError(f"Unexpected type for examples['translation']: {type(translations)}")
 
     model_inputs = tokenizer(
         source_texts,
@@ -110,6 +117,7 @@ def preprocess_function(examples, tokenizer):
 
     model_inputs["labels"] = labels["input_ids"]
     return model_inputs
+
 
 
 def build_model(tokenizer):
